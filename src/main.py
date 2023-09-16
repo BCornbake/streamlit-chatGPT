@@ -1,6 +1,7 @@
 import streamlit as st
 from decouple import config
 import openai
+import os
 
 response = False
 prompt_tokens = 0
@@ -8,13 +9,17 @@ completion_tokes = 0
 total_tokens_used = 0
 cost_of_response = 0
 
-API_KEY = config('OPENAI_API_KEY')
+API_KEY = os.getenv('OPENAI_API_KEY')
+API_BASE = os.getenv('OPENAI_API_BASE')
 openai.api_key = API_KEY
+openai.api_base = API_BASE
+openai.api_type = 'azure'
+openai.api_version = '2023-07-01-preview'
 
 
 def make_request(question_input: str):
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        engine="gptdemo",
         messages=[
             {"role": "system", "content": f"{question_input}"},
         ]
@@ -22,12 +27,12 @@ def make_request(question_input: str):
     return response
 
 
-st.header("Streamlit + OpenAI ChatGPT API")
+st.header("ChatGPT 问答机器人")
 
 st.markdown("""---""")
 
-question_input = st.text_input("Enter question")
-rerun_button = st.button("Rerun")
+question_input = st.text_input("输入问题")
+rerun_button = st.button("提交")
 
 st.markdown("""---""")
 
@@ -44,20 +49,6 @@ else:
 if response:
     st.write("Response:")
     st.write(response["choices"][0]["message"]["content"])
-
-    prompt_tokens = response["usage"]["prompt_tokens"]
-    completion_tokes = response["usage"]["completion_tokens"]
-    total_tokens_used = response["usage"]["total_tokens"]
-
-    cost_of_response = total_tokens_used * 0.000002
 else:
     pass
 
-
-with st.sidebar:
-    st.title("Usage Stats:")
-    st.markdown("""---""")
-    st.write("Promt tokens used :", prompt_tokens)
-    st.write("Completion tokens used :", completion_tokes)
-    st.write("Total tokens used :", total_tokens_used)
-    st.write("Total cost of request: ${:.8f}".format(cost_of_response))
