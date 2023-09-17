@@ -29,16 +29,13 @@ if prompt := st.chat_input("What is up?"):
 
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
-        full_response = ""
-        for response in openai.ChatCompletion.create(
+        response = openai.ChatCompletion.create(
             engine=st.session_state["openai_model"],
             messages=[
                 {"role": m["role"], "content": m["content"]}
                 for m in st.session_state.messages
-            ],
-            stream=True,
-        ):
-            full_response += response["choices"][0]["message"].get("content", "")
-            message_placeholder.markdown(full_response + "▌")
+            ]
+        )
+        full_response = response["choices"][0]["message"]["content"]
         message_placeholder.markdown(full_response)
     st.session_state.messages.append({"role": "assistant", "content": full_response})
