@@ -1,13 +1,5 @@
-import streamlit as st
-from decouple import config
 import openai
-import os
-
-response = False
-prompt_tokens = 0
-completion_tokes = 0
-total_tokens_used = 0
-cost_of_response = 0
+import streamlit as st
 
 API_KEY = os.getenv('OPENAI_API_KEY')
 API_BASE = os.getenv('OPENAI_API_BASE')
@@ -17,38 +9,35 @@ openai.api_type = 'azure'
 openai.api_version = '2023-07-01-preview'
 
 
-def make_request(question_input: str):
-    response = openai.ChatCompletion.create(
-        engine="gptdemo",
-        messages=[
-            {"role": "system", "content": f"{question_input}"},
-        ]
-    )
-    return response
+st.title("ChatGPT 问答机器人")
 
+if "openai_model" not in st.session_state:
+    st.session_state["openai_model"] = "gptdemo"
 
-st.header("ChatGPT 问答机器人")
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-st.markdown("""---""")
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-question_input = st.text_input("输入问题")
-rerun_button = st.button("提交")
+if prompt := st.chat_input("What is up?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-st.markdown("""---""")
-
-if question_input:
-    response = make_request(question_input)
-else:
-    pass
-
-if rerun_button:
-    response = make_request(question_input)
-else:
-    pass
-
-if response:
-    st.write("Response:")
-    st.write(response["choices"][0]["message"]["content"])
-else:
-    pass
-
+    with st.chat_message("assistant"):
+        message_placeholder = st.empty()
+        full_response = ""
+        for response in openai.ChatCompletion.create(
+            engine=st.session_state["openai_model"],
+            messages=[
+                {"role": m["role"], "content": m["content"]}
+                for m in st.session_state.messages
+            ],
+            stream=True,
+        ):
+            full_response += response.choices[0].delta.get("content", "")
+            message_placeholder.markdown(full_response + "▌")
+        message_placeholder.markdown(full_response)
+    st.session_state.messages.append({"role": "assistant", "content": full_response})
