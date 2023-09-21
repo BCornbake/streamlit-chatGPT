@@ -13,7 +13,7 @@ openai.api_version = '2023-07-01-preview'
 st.title("ChatGPT 问答机器人")
 
 if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gptdemo"
+    st.session_state["openai_model"] = "gpt-35-turbo-16k"
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
