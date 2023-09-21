@@ -10,6 +10,7 @@ openai.api_type = 'azure'
 openai.api_version = '2023-07-01-preview'
 
 
+
 st.title("ChatGPT 问答机器人")
 
 if "openai_model" not in st.session_state:
